@@ -24,6 +24,7 @@ class Program
             Console.WriteLine("No Github Access Token provided.");
             createDb.GithubAccessToken = null;
         }
+        Directory.CreateDirectory("temp");
         var result = await createDb.CreateArchiveDatabase();
         Console.WriteLine(result);
     }
