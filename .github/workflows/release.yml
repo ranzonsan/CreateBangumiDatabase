@@ -34,13 +34,13 @@ jobs:
       # 运行项目
       - name: Run compiled executable
         run: |
-          chmod +x CreateBangumiDatabase/bin/Release/net7.0/CreateBangumiDatabase
-          ./CreateBangumiDatabase/bin/Release/net7.0/CreateBangumiDatabase
+          chmod +x CreateBangumiDatabase/bin/Release/net8.0/CreateBangumiDatabase
+          ./CreateBangumiDatabase/bin/Release/net8.0/CreateBangumiDatabase
       # 打包运行后的文件
       - name: Archive output
         run: |
           mkdir output
-          cp -r CreateBangumiDatabase/bin/Release/net7.0/BangumiArchive.db output/
+          cp -r CreateBangumiDatabase/bin/Release/net8.0/BangumiArchive.db output/
           zip -r BangumiArchive.zip output/BangumiArchive.db
 
   create-release:
