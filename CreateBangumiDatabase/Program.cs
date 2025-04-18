@@ -11,9 +11,19 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        Console.WriteLine("Hello, World!");
+        // string databasePath = $"bangumi_archive_{System.DateTime()}.db";
+        using var dbContext = new BangumiArchiveDbContext();
+        dbContext.Database.EnsureCreated();
         var createDb = new BangumiArchiveDatabaseFunctions();
-        createDb.GithubAccessToken = args[0];
+        try
+        {
+            createDb.GithubAccessToken = args[0];
+        }
+        catch (IndexOutOfRangeException)
+        {
+            Console.WriteLine("No Github Access Token provided.");
+            createDb.GithubAccessToken = null;
+        }
         var result = await createDb.CreateArchiveDatabase();
         Console.WriteLine(result);
     }
@@ -37,15 +47,16 @@ public class BangumiArchiveDatabaseFunctions
     public class Result
     {
         public bool IsSuccess { get; set; }
+        public string? DatabasePath { get; set; }
         public string? ExceptionMessage { get; set; }
     }
 
     public async Task<Result> CreateArchiveDatabase()
     {
         BangumiArchiveDbContext bangumiArchiveDbContext = new(new DbContextOptions<BangumiArchiveDbContext>());
-        string tempManifestPath = Path.GetTempFileName();
-        string tempZipPath = Path.GetTempFileName();
-        string tempExtractPath = Path.GetRandomFileName();
+        string tempManifestPath = "temp/manifest.json";
+        string tempZipPath = "temp/archive.zip";
+        string tempExtractPath = "temp/extracted";
 
         var fetchingManifestFileClient = new HttpClient();
         fetchingManifestFileClient.DefaultRequestHeaders.UserAgent.ParseAdd(
@@ -563,6 +574,20 @@ public class BangumiArchiveDatabaseModels
 }
 public class BangumiArchiveDbContext : DbContext
 {
+    private readonly string _databasePath;
+
+    public BangumiArchiveDbContext()
+    {
+        _databasePath = "BangumiArchive.db";
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseSqlite($"Data Source={_databasePath}");
+        }
+    }
     public BangumiArchiveDbContext(DbContextOptions<BangumiArchiveDbContext> options) : base(options) { }
     public DbSet<BangumiArchiveDatabaseModels.ArchiveDatabaseInfo> ArchiveDatabaseInfo { get; set; }
     public DbSet<BangumiArchiveDatabaseModels.Subject> Subject { get; set; }
