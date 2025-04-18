@@ -12,6 +12,7 @@ class Program
     static async Task Main(string[] args)
     {
         // string databasePath = $"bangumi_archive_{System.DateTime()}.db";
+        Directory.CreateDirectory("temp");
         using var dbContext = new BangumiArchiveDbContext();
         dbContext.Database.EnsureCreated();
         var createDb = new BangumiArchiveDatabaseFunctions();
