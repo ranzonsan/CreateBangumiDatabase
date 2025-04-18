@@ -32,9 +32,10 @@ jobs:
         run: dotnet build --configuration Release
       
       # 运行项目
-      - name: Run project
-        run: dotnet run --project CreateBangumiDatabase/CreateBangumiDatabase.csproj
-      
+      - name: Run compiled executable
+        run: |
+          chmod +x CreateBangumiDatabase/bin/Release/net7.0/CreateBangumiDatabase
+          ./CreateBangumiDatabase/bin/Release/net7.0/CreateBangumiDatabase
       # 打包运行后的文件
       - name: Archive output
         run: |
