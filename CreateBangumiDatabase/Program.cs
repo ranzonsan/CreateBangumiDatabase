@@ -26,7 +26,10 @@ class Program
             createDb.GithubAccessToken = null;
         }
         Directory.CreateDirectory("temp");
-        var result = await createDb.CreateArchiveDatabase();
+        var dbConnection = dbContext.Database.GetDbConnection();
+        var dbPath = dbConnection.ConnectionString.Replace("Data Source=", "");    
+        Console.WriteLine(Path.GetFullPath(dbPath));
+        var result = await createDb.CreateArchiveDatabase(dbContext);
         Console.WriteLine(result);
     }
 }
@@ -53,9 +56,8 @@ public class BangumiArchiveDatabaseFunctions
         public string? ExceptionMessage { get; set; }
     }
 
-    public async Task<Result> CreateArchiveDatabase()
+    public async Task<Result> CreateArchiveDatabase(BangumiArchiveDbContext bangumiArchiveDbContext)
     {
-        BangumiArchiveDbContext bangumiArchiveDbContext = new(new DbContextOptions<BangumiArchiveDbContext>());
         string tempManifestPath = "temp/manifest.json";
         string tempZipPath = "temp/archive.zip";
         string tempExtractPath = "temp/extracted";
