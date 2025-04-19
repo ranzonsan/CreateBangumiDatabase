@@ -14,6 +14,7 @@ class Program
         // string databasePath = $"bangumi_archive_{System.DateTime()}.db";
         using var dbContext = new BangumiArchiveDbContext();
         dbContext.Database.EnsureCreated();
+        dbContext.Database.Migrate();
         var createDb = new BangumiArchiveDatabaseFunctions();
         try
         {
