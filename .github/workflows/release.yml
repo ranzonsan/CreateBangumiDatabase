@@ -1,5 +1,8 @@
 name: Build and Release
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
@@ -68,3 +71,5 @@ jobs:
           asset_path: ./BangumiArchive.zip
           asset_name: BangumiArchive.zip
           asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
