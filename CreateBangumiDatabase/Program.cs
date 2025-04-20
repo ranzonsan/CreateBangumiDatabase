@@ -327,7 +327,7 @@ public class BangumiArchiveDatabaseFunctions
 
     private static async Task DeserializeOfficialFile<T>(BangumiArchiveDbContext officialSubjectDbContext,string jsonFile, JsonSerializerOptions jsonDeserializerOptions)
     {
-        const int maxLines = 100000;
+        const int maxLines = 200000;
         await using var fileStream = File.OpenRead(jsonFile);
         using var streamReader = new StreamReader(fileStream);
         var lines = new List<string>(maxLines);
@@ -345,7 +345,7 @@ public class BangumiArchiveDatabaseFunctions
             if (lines.Count == 0) continue;
 
             // Calculate batch size for parallel processing
-            int batchSize = Math.Max(1, lines.Count / 10000);
+            int batchSize = Math.Max(1, lines.Count / 20000);
             var batches = lines
                 .Select((line, index) => new { line, index })
                 .GroupBy(x => x.index / batchSize)
@@ -409,14 +409,12 @@ public class BangumiArchiveDatabaseFunctions
                             await officialSubjectDbContext.SubjectPerson.AddAsync(sp);
                             break;
                         case BangumiArchiveDatabaseModels.SubjectRelation sr:
-
                             await officialSubjectDbContext.SubjectRelation.AddAsync(sr);
                             break;
                     }
                 }
             }
             await officialSubjectDbContext.SaveChangesAsync();
-            
             GC.Collect();
         }
     }
