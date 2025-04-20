@@ -40,8 +40,8 @@ jobs:
       - name: Archive output
         run: |
           mkdir output
-          cp -r CreateBangumiDatabase/bin/Release/net8.0/BangumiArchive.db output/
-          zip -r BangumiArchive.zip output/BangumiArchive.db
+          cp -r CreateBangumiDatabase/BangumiArchive.db output/
+          zip -s 200m -r BangumiArchive.zip output/BangumiArchive.db
 
   create-release:
     runs-on: ubuntu-22.04
