@@ -327,14 +327,13 @@ public class BangumiArchiveDatabaseFunctions
 
     private static async Task DeserializeOfficialFile<T>(BangumiArchiveDbContext officialSubjectDbContext,string jsonFile, JsonSerializerOptions jsonDeserializerOptions)
     {
-        const int maxLines = 10000;
+        const int maxLines = 100000;
         await using var fileStream = File.OpenRead(jsonFile);
         using var streamReader = new StreamReader(fileStream);
         var lines = new List<string>(maxLines);
         int lineCount = 1;
         while (!streamReader.EndOfStream)
         {
-            // Read up to 10000 lines
             lines.Clear();
             for (int i = 0; i < maxLines && !streamReader.EndOfStream; i++)
             {
@@ -346,7 +345,7 @@ public class BangumiArchiveDatabaseFunctions
             if (lines.Count == 0) continue;
 
             // Calculate batch size for parallel processing
-            int batchSize = Math.Max(1, lines.Count / 100);
+            int batchSize = Math.Max(1, lines.Count / 10000);
             var batches = lines
                 .Select((line, index) => new { line, index })
                 .GroupBy(x => x.index / batchSize)
