@@ -2,6 +2,7 @@
 using CreateBangumiDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CreateBangumiDatabase.Migrations
 {
     [DbContext(typeof(BangumiArchiveDbContext))]
-    partial class BangumiArchiveDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250420042432_DeleteRelationsKey")]
+    partial class DeleteRelationsKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.4");
@@ -123,8 +126,8 @@ namespace CreateBangumiDatabase.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("Sort")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("Sort")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Subject_Id")
                         .HasColumnType("INTEGER");
@@ -174,20 +177,18 @@ namespace CreateBangumiDatabase.Migrations
 
             modelBuilder.Entity("CreateBangumiDatabase.BangumiArchiveDatabaseModels+PersonCharacter", b =>
                 {
+                    b.Property<int>("Character_Id")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Person_Id")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Subject_Id")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Character_Id")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Summary")
                         .IsRequired()
                         .HasColumnType("TEXT");
-
-                    b.HasKey("Person_Id", "Subject_Id", "Character_Id");
 
                     b.ToTable("PersonCharacter");
                 });
@@ -258,42 +259,34 @@ namespace CreateBangumiDatabase.Migrations
                     b.Property<int>("Character_Id")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Subject_Id")
+                    b.Property<int>("Order")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Order")
+                    b.Property<int>("Subject_Id")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Type")
                         .HasColumnType("INTEGER");
-
-                    b.HasKey("Character_Id", "Subject_Id");
 
                     b.ToTable("SubjectCharacter");
                 });
 
             modelBuilder.Entity("CreateBangumiDatabase.BangumiArchiveDatabaseModels+SubjectPerson", b =>
                 {
-                    b.Property<int>("Subject_Id")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int>("Person_Id")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Position")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("Subject_Id", "Person_Id", "Position");
+                    b.Property<int>("Subject_Id")
+                        .HasColumnType("INTEGER");
 
                     b.ToTable("SubjectPerson");
                 });
 
             modelBuilder.Entity("CreateBangumiDatabase.BangumiArchiveDatabaseModels+SubjectRelation", b =>
                 {
-                    b.Property<int>("RelationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
                     b.Property<int>("Order")
                         .HasColumnType("INTEGER");
 
@@ -305,8 +298,6 @@ namespace CreateBangumiDatabase.Migrations
 
                     b.Property<int>("Subject_Id")
                         .HasColumnType("INTEGER");
-
-                    b.HasKey("RelationId");
 
                     b.ToTable("SubjectRelation");
                 });
