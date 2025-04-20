@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-run:
+  build-and-release:
     runs-on: ubuntu-22.04
 
     steps:
@@ -42,12 +42,7 @@ jobs:
           mkdir output
           cp -r /home/runner/work/CreateBangumiDatabase/CreateBangumiDatabase/BangumiArchive.db output/
           zip -s 200m -r BangumiArchive.zip output/BangumiArchive.db
-
-  create-release:
-    runs-on: ubuntu-22.04
-    needs: build-and-run
-
-    steps:
+          
       - name: Fetch JSON and extract release name
         id: fetch_json
         run: |
