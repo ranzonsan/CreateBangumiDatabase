@@ -42,10 +42,8 @@ jobs:
       # 打包运行后的文件
       - name: Archive output
         run: |
-          mkdir output
-          mkdir ./output/Release
-          cp -r /home/runner/work/CreateBangumiDatabase/CreateBangumiDatabase/BangumiArchive.db ./output/
-          zip -s 200m -r ./Release/BangumiArchive.zip ./output/BangumiArchive.db
+          mkdir Release
+          zip -s 200m -r Release/BangumiArchive.zip /home/runner/work/CreateBangumiDatabase/CreateBangumiDatabase/BangumiArchive.db
           
       - name: Fetch JSON and extract release name
         id: fetch_json
@@ -76,7 +74,7 @@ jobs:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload multiple files
         run: |
-          for file in ./output/Release/*; do
+          for file in Release/*; do
             echo "Uploading $file"
             gh release upload "${{ steps.create_release.outputs.upload_url }}" "$file" --clobber
           done
