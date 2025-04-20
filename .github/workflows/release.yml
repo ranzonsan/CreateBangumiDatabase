@@ -42,7 +42,7 @@ jobs:
       # 打包运行后的文件
       - name: Archive output
         run: |
-          mkdir output
+          mkdir output output/Release
           cp -r /home/runner/work/CreateBangumiDatabase/CreateBangumiDatabase/BangumiArchive.db output/
           zip -s 200m -r Release/BangumiArchive.zip output/BangumiArchive.db
           
