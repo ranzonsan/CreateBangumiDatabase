@@ -15,22 +15,33 @@ class Program
         using var dbContext = new BangumiArchiveDbContext();
         dbContext.Database.Migrate();
         var createDb = new BangumiArchiveDatabaseFunctions();
-        try
+
+        if (args.Length > 0)
         {
             createDb.GithubAccessToken = args[0];
         }
-        catch (IndexOutOfRangeException)
+        else if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GITHUB_TOKEN")))
         {
-            Console.WriteLine("No Github Access Token provided.");
+            createDb.GithubAccessToken = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+            Console.WriteLine("Using Github Access Token from Actions default or environment.");
+        }
+        else
+        {
             createDb.GithubAccessToken = null;
+            Console.WriteLine("No Github Access Token provided.");
         }
 
         Directory.CreateDirectory("temp");
-        var dbConnection = dbContext.Database.GetDbConnection();
-        var dbPath = dbConnection.ConnectionString.Replace("Data Source=", "");
-        Console.WriteLine(Path.GetFullPath(dbPath));
+
         var result = await createDb.CreateArchiveDatabase(dbContext);
-        Console.WriteLine(result);
+        if (result.IsSuccess)
+        {
+            Console.WriteLine("Database created successfully.");
+        }
+        else
+        {
+            Console.WriteLine("Failed to create database: " + result.ExceptionMessage);
+        }
     }
 }
 
@@ -54,7 +65,6 @@ public class BangumiArchiveDatabaseFunctions
     public class Result
     {
         public bool IsSuccess { get; set; }
-        public string? DatabasePath { get; set; }
         public string? ExceptionMessage { get; set; }
     }
 
@@ -103,7 +113,7 @@ public class BangumiArchiveDatabaseFunctions
             };
         }
 
-        Console.WriteLine("Successfully downloaded official manifest file.");
+        Console.WriteLine("Success.");
         Console.WriteLine("Deserializing manifest file.");
         var jsonDeserializerOptions = new JsonSerializerOptions
         {
@@ -129,7 +139,7 @@ public class BangumiArchiveDatabaseFunctions
         }
 
         var remoteZipUrl = manifestResponseBodyDeserialized.Url;
-        Console.WriteLine("Successfully deserialized and storaged manifest file.");
+        Console.WriteLine("Success.");
         Console.WriteLine("Downloading official archived data zip file.");
         var zipFileRequest = new HttpRequestMessage(HttpMethod.Get, remoteZipUrl);
         zipFileRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
@@ -206,7 +216,7 @@ public class BangumiArchiveDatabaseFunctions
             };
         }
 
-        Console.WriteLine("Successfully downloaded official archived data zip file.");
+        Console.WriteLine("Success.");
         Console.WriteLine("Extracting zip file.");
 
         try
@@ -225,7 +235,7 @@ public class BangumiArchiveDatabaseFunctions
         }
 
         GC.Collect();
-        Console.WriteLine("Successfully extracted zip file.");
+        Console.WriteLine("Success.");
         Console.WriteLine("Deserializing raw data. This may take a while.");
 
         string[] jsonFiles;
@@ -297,14 +307,13 @@ public class BangumiArchiveDatabaseFunctions
             {
                 Console.WriteLine($"Error: Failed to deserialize file ({jsonFile}): {e}");
                 Console.WriteLine("This file will be skipped. Continuing.");
-                throw e;
             }
             finally
             {
                 GC.Collect();
             }
 
-            Console.WriteLine($"Finished deserializing file: {jsonFile}.");
+            Console.WriteLine("Success.");
             GC.Collect();
         }
 
@@ -363,19 +372,9 @@ public class BangumiArchiveDatabaseFunctions
                 var records = new List<T>();
                 foreach (var line in batch)
                 {
-                    T record;
-                    try
-                    {
-                        record = JsonSerializer.Deserialize<T>(line, jsonDeserializerOptions);
-                        if (record is BangumiArchiveDatabaseModels.Subject subject)
-                            subject.Id = lineCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(line);
-                        throw ex;
-                    }
-
+                    var record = JsonSerializer.Deserialize<T>(line, jsonDeserializerOptions);
+                    if (record is BangumiArchiveDatabaseModels.Subject subject)
+                        subject.Id = lineCount++;
                     if (record != null)
                         records.Add(record);
                 }
