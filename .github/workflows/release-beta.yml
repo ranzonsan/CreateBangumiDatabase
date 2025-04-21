@@ -37,9 +37,9 @@ jobs:
           mkdir Release
           zip -r Release/bangumi-archive-tool-${{ env.VERSION }}.zip ./bangumi-archive-tool/bin/Release/net8.0/*
           
-      - name: Get commit message
-        id: get_commit_message
-        run: echo "COMMIT_MESSAGE=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
+      - name: Get commit messages
+        id: get_commit_messages
+        run: echo "COMMIT_MESSAGES=$(git log origin/${{ github.event.before }}..HEAD --pretty=format:'%h %s')" >> $GITHUB_ENV
       
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
