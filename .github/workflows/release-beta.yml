@@ -27,17 +27,26 @@ jobs:
       
       - name: Build project
         run: dotnet build --configuration Release
-          
+      
+      - name: Read version from VERSION file
+        id: read_version
+        run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
+      
       - name: Archive output
         run: |
           mkdir Release
-          zip -r Release/bangumi-archive-tool-${{ github.ref_name }}.zip ./bangumi-archive-tool/bin/Release/net8.0/*
+          zip -r Release/bangumi-archive-tool-${{ env.VERSION }}.zip ./bangumi-archive-tool/bin/Release/net8.0/*
           
+      - name: Get commit message
+        id: get_commit_message
+        run: echo "COMMIT_MESSAGE=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
+      
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: 'beta'
-          name: ${{ github.ref_name }}
+          tag_name: ${{ env.VERSION }}
+          name: ${{ env.VERSION }}
+          body: ${{ env.COMMIT_MESSAGE }}
           draft: false
           prerelease: true
           files: Release/*.zip
