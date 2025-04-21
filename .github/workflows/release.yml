@@ -5,8 +5,8 @@ permissions:
 
 on:
   push:
-    tags:
-      - 'beta*'
+    branches:
+      - beta*
   workflow_dispatch:
 
 jobs:
@@ -40,6 +40,6 @@ jobs:
           name: ${{ github.ref_name }}
           draft: false
           prerelease: true
-          files: bangumi-archive-tool-${{ github.ref_name }}.zip
+          files: Release/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
