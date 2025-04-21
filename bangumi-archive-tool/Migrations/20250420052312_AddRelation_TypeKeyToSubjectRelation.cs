@@ -1,11 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
+using BangumiArchiveTool;
 
 #nullable disable
 
-namespace CreateBangumiDatabase.Migrations
+namespace BangumiArchiveTool
 {
     /// <inheritdoc />
-    public partial class AddRelationIdToSubjectRelation : Migration
+    public partial class AddRelation_TypeKeyToSubjectRelation : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -14,18 +15,10 @@ namespace CreateBangumiDatabase.Migrations
                 name: "PK_SubjectRelation",
                 table: "SubjectRelation");
 
-            migrationBuilder.AddColumn<int>(
-                name: "RelationId",
-                table: "SubjectRelation",
-                type: "INTEGER",
-                nullable: false,
-                defaultValue: 0)
-                .Annotation("Sqlite:Autoincrement", true);
-
             migrationBuilder.AddPrimaryKey(
                 name: "PK_SubjectRelation",
                 table: "SubjectRelation",
-                column: "RelationId");
+                columns: new[] { "Subject_Id", "Relation_Type", "Related_Subject_Id" });
         }
 
         /// <inheritdoc />
@@ -35,14 +28,10 @@ namespace CreateBangumiDatabase.Migrations
                 name: "PK_SubjectRelation",
                 table: "SubjectRelation");
 
-            migrationBuilder.DropColumn(
-                name: "RelationId",
-                table: "SubjectRelation");
-
             migrationBuilder.AddPrimaryKey(
                 name: "PK_SubjectRelation",
                 table: "SubjectRelation",
-                columns: new[] { "Subject_Id", "Relation_Type", "Related_Subject_Id", "Order" });
+                columns: new[] { "Subject_Id", "Related_Subject_Id" });
         }
     }
 }

@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
+using BangumiArchiveTool;
 
 #nullable disable
 
-namespace CreateBangumiDatabase.Migrations
+namespace BangumiArchiveTool
 {
     /// <inheritdoc />
     public partial class FixSortClassTypeInEpisode : Migration

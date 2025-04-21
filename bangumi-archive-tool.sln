@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateBangumiDatabase", "CreateBangumiDatabase\CreateBangumiDatabase.csproj", "{5B2AB797-5C2C-4AEF-BC65-DA6B448A237E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bangumi-archive-tool", "bangumi-archive-tool\bangumi-archive-tool.csproj", "{5B2AB797-5C2C-4AEF-BC65-DA6B448A237E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
