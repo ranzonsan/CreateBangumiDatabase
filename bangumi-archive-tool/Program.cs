@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+
 namespace BangumiArchiveTool;
 
 class Program
@@ -23,9 +24,10 @@ class Program
             Console.WriteLine("No Github Access Token provided.");
             createDb.GithubAccessToken = null;
         }
+
         Directory.CreateDirectory("temp");
         var dbConnection = dbContext.Database.GetDbConnection();
-        var dbPath = dbConnection.ConnectionString.Replace("Data Source=", "");    
+        var dbPath = dbConnection.ConnectionString.Replace("Data Source=", "");
         Console.WriteLine(Path.GetFullPath(dbPath));
         var result = await createDb.CreateArchiveDatabase(dbContext);
         Console.WriteLine(result);
@@ -35,16 +37,18 @@ class Program
 public class BangumiArchiveDatabaseFunctions
 {
     private const string _version_ = "1.0.0";
+
     public BangumiArchiveDatabaseFunctions()
     {
         GithubAccessToken = null;
     }
-    
+
     public string? GithubAccessToken
     {
         get => _githubAccessToken;
         set => _githubAccessToken = value;
     }
+
     private string? _githubAccessToken;
 
     public class Result
@@ -59,7 +63,7 @@ public class BangumiArchiveDatabaseFunctions
         string tempManifestPath = "temp/manifest.json";
         string tempZipPath = "temp/archive.zip";
         string tempExtractPath = "temp/extracted";
-        
+
         var fetchingManifestFileClient = new HttpClient();
         fetchingManifestFileClient.DefaultRequestHeaders.UserAgent.ParseAdd(
             $"Anitou_Database/{_version_}");
@@ -68,7 +72,7 @@ public class BangumiArchiveDatabaseFunctions
             fetchingManifestFileClient.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _githubAccessToken);
         }
-        
+
         Console.WriteLine("Downloading official manifest file.");
         var manifestRequest = new HttpRequestMessage(HttpMethod.Get,
             "https://raw.githubusercontent.com/bangumi/Archive/refs/heads/master/aux/latest.json");
@@ -86,11 +90,11 @@ public class BangumiArchiveDatabaseFunctions
                 ExceptionMessage = "Error: Failed to download manifest file: " + e.Message
             };
         }
-        
+
         if (!manifestResponse.IsSuccessStatusCode)
         {
             Console.WriteLine("Error: " + manifestResponse.StatusCode + ": " +
-                            manifestResponse.Content.ReadAsStringAsync().Result);
+                              manifestResponse.Content.ReadAsStringAsync().Result);
             return new Result
             {
                 IsSuccess = false,
@@ -98,7 +102,7 @@ public class BangumiArchiveDatabaseFunctions
                                    manifestResponse.Content.ReadAsStringAsync().Result
             };
         }
-        
+
         Console.WriteLine("Successfully downloaded official manifest file.");
         Console.WriteLine("Deserializing manifest file.");
         var jsonDeserializerOptions = new JsonSerializerOptions
@@ -123,7 +127,7 @@ public class BangumiArchiveDatabaseFunctions
                 ExceptionMessage = "Error: Failed to deserialize or storage manifest file: " + e.Message
             };
         }
-        
+
         var remoteZipUrl = manifestResponseBodyDeserialized.Url;
         Console.WriteLine("Successfully deserialized and storaged manifest file.");
         Console.WriteLine("Downloading official archived data zip file.");
@@ -144,7 +148,7 @@ public class BangumiArchiveDatabaseFunctions
                 fetchingRawDataZipFileClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", _githubAccessToken);
             }
-        
+
             using var zipFileResponse = await fetchingRawDataZipFileClient.SendAsync(zipFileRequest);
             if (!zipFileResponse.IsSuccessStatusCode)
             {
@@ -157,7 +161,7 @@ public class BangumiArchiveDatabaseFunctions
                     {
                         GC.Collect();
                         Console.WriteLine("Error: Failed to download file(s): " + downloadResponse.StatusCode + ": " +
-                                        downloadResponse.Content.ReadAsStringAsync().Result);
+                                          downloadResponse.Content.ReadAsStringAsync().Result);
                         return new Result
                         {
                             IsSuccess = false,
@@ -165,7 +169,7 @@ public class BangumiArchiveDatabaseFunctions
                                                downloadResponse.Content.ReadAsStringAsync().Result
                         };
                     }
-        
+
                     await using var zipStream = await downloadResponse.Content.ReadAsStreamAsync();
                     await using var fileStream = File.Create(tempZipPath);
                     await zipStream.CopyToAsync(fileStream);
@@ -174,7 +178,7 @@ public class BangumiArchiveDatabaseFunctions
                 {
                     GC.Collect();
                     Console.WriteLine("Error: Failed to download file(s): " + zipFileResponse.StatusCode + ": " +
-                                    zipFileResponse.Content.ReadAsStringAsync().Result);
+                                      zipFileResponse.Content.ReadAsStringAsync().Result);
                     return new Result
                     {
                         IsSuccess = false,
@@ -201,12 +205,12 @@ public class BangumiArchiveDatabaseFunctions
                 ExceptionMessage = "Error: Failed to download file(s): " + e.Message
             };
         }
-        
+
         Console.WriteLine("Successfully downloaded official archived data zip file.");
         Console.WriteLine("Extracting zip file.");
-        
+
         try
-        { 
+        {
             ZipFile.ExtractToDirectory(tempZipPath, tempExtractPath);
         }
         catch (Exception e)
@@ -219,6 +223,7 @@ public class BangumiArchiveDatabaseFunctions
                 ExceptionMessage = "Error: Failed to extract zip file: " + e.Message
             };
         }
+
         GC.Collect();
         Console.WriteLine("Successfully extracted zip file.");
         Console.WriteLine("Deserializing raw data. This may take a while.");
@@ -325,7 +330,8 @@ public class BangumiArchiveDatabaseFunctions
         return new Result { IsSuccess = true };
     }
 
-    private static async Task DeserializeOfficialFile<T>(BangumiArchiveDbContext officialSubjectDbContext,string jsonFile, JsonSerializerOptions jsonDeserializerOptions)
+    private static async Task DeserializeOfficialFile<T>(BangumiArchiveDbContext officialSubjectDbContext,
+        string jsonFile, JsonSerializerOptions jsonDeserializerOptions)
     {
         const int maxLines = 200000;
         await using var fileStream = File.OpenRead(jsonFile);
@@ -344,7 +350,6 @@ public class BangumiArchiveDatabaseFunctions
 
             if (lines.Count == 0) continue;
 
-            // Calculate batch size for parallel processing
             int batchSize = Math.Max(1, lines.Count / 20000);
             var batches = lines
                 .Select((line, index) => new { line, index })
@@ -353,7 +358,6 @@ public class BangumiArchiveDatabaseFunctions
                 .ToList();
 
             var deserializedRecords = new List<T>[batches.Count];
-            // Check whether the record exists or not.
             var tasks = batches.Select(async (batch, index) =>
             {
                 var records = new List<T>();
@@ -371,16 +375,16 @@ public class BangumiArchiveDatabaseFunctions
                         Console.WriteLine(line);
                         throw ex;
                     }
-                    // record.ToString();
+
                     if (record != null)
                         records.Add(record);
                 }
+
                 deserializedRecords[index] = records;
             });
 
             await Task.WhenAll(tasks);
 
-            // Add all objects to database in order
             foreach (var records in deserializedRecords)
             {
                 foreach (var record in records)
@@ -414,24 +418,26 @@ public class BangumiArchiveDatabaseFunctions
                     }
                 }
             }
+
             await officialSubjectDbContext.SaveChangesAsync();
             GC.Collect();
         }
     }
 }
+
 public class BangumiArchiveDatabaseModels
 {
     private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
     {
         PropertyNameCaseInsensitive = true
     };
+
     public class ArchiveDatabaseInfo
     {
         public string Browser_Download_Url { get; set; }
         public string Content_Type { get; set; }
         public string Created_At { get; set; }
-        [Key]
-        public int Id { get; set; }
+        [Key] public int Id { get; set; }
         public string Label { get; set; }
         public string Name { get; set; }
         public string Node_Id { get; set; }
@@ -439,10 +445,10 @@ public class BangumiArchiveDatabaseModels
         public string Updated_At { get; set; }
         public string Url { get; set; }
     }
+
     public class Subject
     {
-        [Key]
-        public int Id { get; set; }
+        [Key] public int Id { get; set; }
         public int Type { get; set; }
         public string Name { get; set; }
         public string Name_Cn { get; set; }
@@ -450,20 +456,23 @@ public class BangumiArchiveDatabaseModels
         public int Platform { get; set; }
         public string Summary { get; set; }
         public bool NSFW { get; set; }
+
         [NotMapped]
         public List<TagItem> Tags
         {
-            get => JsonSerializer.Deserialize<List<TagItem>>(Tags_Json ?? "[]", JsonOptions); 
-            set => Score_Details_Json = JsonSerializer.Serialize(value,JsonOptions);
+            get => JsonSerializer.Deserialize<List<TagItem>>(Tags_Json ?? "[]", JsonOptions);
+            set => Score_Details_Json = JsonSerializer.Serialize(value, JsonOptions);
         }
-        
+
         public string Tags_Json { get; set; } = "[]";
+
         [NotMapped]
         public class TagItem
         {
             public string Name { get; set; }
             public int Count { get; set; }
         }
+
         public double Score { get; set; }
 
         [NotMapped]
@@ -472,25 +481,27 @@ public class BangumiArchiveDatabaseModels
             get => JsonSerializer.Deserialize<Dictionary<string, int>>(Score_Details_Json ?? "{}");
             set => Score_Details_Json = JsonSerializer.Serialize(value);
         }
+
         public string Score_Details_Json { get; set; }
-        
+
         public int Rank { get; set; }
         public string Date { get; set; }
 
         [NotMapped]
         public Dictionary<string, int> Favorite
         {
-            get => JsonSerializer.Deserialize<Dictionary<string, int>>(Favorite_Json ?? "{}"); 
+            get => JsonSerializer.Deserialize<Dictionary<string, int>>(Favorite_Json ?? "{}");
             set => Favorite_Json = JsonSerializer.Serialize(value);
         }
+
         public string Favorite_Json { get; set; }
 
         public bool Series { get; set; }
     }
+
     public class Character
     {
-        [Key]
-        public int Id { get; set; }
+        [Key] public int Id { get; set; }
         public int Role { get; set; }
         public string Name { get; set; }
         public string InfoBox { get; set; }
@@ -498,10 +509,10 @@ public class BangumiArchiveDatabaseModels
         public int Comments { get; set; }
         public int Collects { get; set; }
     }
+
     public class Episode
     {
-        [Key]
-        public int Id { get; set; }
+        [Key] public int Id { get; set; }
         public string Name { get; set; }
         public string Name_Cn { get; set; }
         public string Description { get; set; }
@@ -512,10 +523,10 @@ public class BangumiArchiveDatabaseModels
         public decimal Sort { get; set; }
         public int Type { get; set; }
     }
+
     public class Person
     {
-        [Key]
-        public int Id { get; set; }
+        [Key] public int Id { get; set; }
         public string Name { get; set; }
         public int Type { get; set; }
         public List<string>? Carrer { get; set; }
@@ -524,6 +535,7 @@ public class BangumiArchiveDatabaseModels
         public int Comments { get; set; }
         public int Collects { get; set; }
     }
+
     public class PersonCharacter
     {
         public int Person_Id { get; set; }
@@ -531,6 +543,7 @@ public class BangumiArchiveDatabaseModels
         public int Character_Id { get; set; }
         public string Summary { get; set; }
     }
+
     public class SubjectCharacter
     {
         public int Character_Id { get; set; }
@@ -538,22 +551,24 @@ public class BangumiArchiveDatabaseModels
         public int Type { get; set; }
         public int Order { get; set; }
     }
+
     public class SubjectPerson
     {
         public int Person_Id { get; set; }
         public int Subject_Id { get; set; }
         public int Position { get; set; }
     }
+
     public class SubjectRelation
     {
-        [Key]
-        public int RelationId { get; set; }
+        [Key] public int RelationId { get; set; }
         public int Subject_Id { get; set; }
         public int Relation_Type { get; set; }
         public int Related_Subject_Id { get; set; }
         public int Order { get; set; }
     }
 }
+
 public class BangumiArchiveDbContext : DbContext
 {
     private readonly string _databasePath;
@@ -580,7 +595,11 @@ public class BangumiArchiveDbContext : DbContext
         modelBuilder.Entity<BangumiArchiveDatabaseModels.SubjectPerson>()
             .HasKey(sp => new { sp.Subject_Id, sp.Person_Id, sp.Position });
     }
-    public BangumiArchiveDbContext(DbContextOptions<BangumiArchiveDbContext> options) : base(options) { }
+
+    public BangumiArchiveDbContext(DbContextOptions<BangumiArchiveDbContext> options) : base(options)
+    {
+    }
+
     public DbSet<BangumiArchiveDatabaseModels.ArchiveDatabaseInfo> ArchiveDatabaseInfo { get; set; }
     public DbSet<BangumiArchiveDatabaseModels.Subject> Subject { get; set; }
     public DbSet<BangumiArchiveDatabaseModels.Episode> Episode { get; set; }
